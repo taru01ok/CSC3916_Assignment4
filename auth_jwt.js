@@ -1,6 +1,4 @@
-node -e "
-const fs = require('fs');
-const content = \`require('dotenv').config();
+require('dotenv').config();
 var passport = require('passport');
 var JwtStrategy = require('passport-jwt').Strategy;
 var ExtractJwt = require('passport-jwt').ExtractJwt;
@@ -18,9 +16,6 @@ passport.use(new JwtStrategy(opts, async function(jwt_payload, done) {
 }));
 
 exports.isAuthenticated = passport.authenticate('jwt', { session: false });
-exports.secret = opts.secretOrKey;\`;
-fs.writeFileSync('auth_jwt.js', content);
-console.log('Done!');
-"
+exports.secret = opts.secretOrKey;
 
 
