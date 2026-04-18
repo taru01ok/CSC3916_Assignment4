@@ -1,13 +1,7 @@
-/*
-CSC3916 HW4
-File: Server.js
-Description: Web API scaffolding for Movie API
- */
-
+require('dotenv').config();
 var express = require('express');
 var bodyParser = require('body-parser');
 var passport = require('passport');
-var authController = require('./auth');
 var authJwtController = require('./auth_jwt');
 var jwt = require('jsonwebtoken');
 var cors = require('cors');
@@ -19,76 +13,149 @@ var app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-
 app.use(passport.initialize());
 
 var router = express.Router();
 
-function getJSONObjectForMovieRequirement(req) {
-    var json = {
-        headers: "No headers",
-        key: process.env.UNIQUE_KEY,
-        body: "No body"
-    };
-
-    if (req.body != null) {
-        json.body = req.body;
+router.post('/signup', async (req, res) => {
+  if (!req.body.username || !req.body.password) {
+    return res.status(400).json({ success: false, msg: 'Please include both username and password.' });
+  }
+  try {
+    var user = new User({
+      name: req.body.name,
+      username: req.body.username,
+      password: req.body.password,
+    });
+    await user.save();
+    res.status(201).json({ success: true, msg: 'Successfully created new user.' });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(409).json({ success: false, message: 'A user with that username already exists.' });
     }
+    return res.status(500).json({ success: false, message: 'Something went wrong.' });
+  }
+});
 
-    if (req.headers != null) {
-        json.headers = req.headers;
+router.post('/signin', async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.body.username }).select('name username password');
+    if (!user) {
+      return res.status(401).json({ success: false, msg: 'Authentication failed. User not found.' });
     }
-
-    return json;
-}
-
-router.post('/signup', function(req, res) {
-    if (!req.body.username || !req.body.password) {
-        res.json({success: false, msg: 'Please include both username and password to signup.'})
+    const isMatch = await user.comparePassword(req.body.password);
+    if (isMatch) {
+      var userToken = { id: user._id, username: user.username };
+      var token = jwt.sign(userToken, process.env.SECRET_KEY, { expiresIn: '1h' });
+      res.json({ success: true, token: 'JWT ' + token });
     } else {
-        var user = new User();
-        user.name = req.body.name;
-        user.username = req.body.username;
-        user.password = req.body.password;
-
-        user.save(function(err){
-            if (err) {
-                if (err.code == 11000)
-                    return res.json({ success: false, message: 'A user with that username already exists.'});
-                else
-                    return res.json(err);
-            }
-
-            res.json({success: true, msg: 'Successfully created new user.'})
-        });
+      res.status(401).json({ success: false, msg: 'Authentication failed. Incorrect password.' });
     }
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Something went wrong.' });
+  }
 });
 
-router.post('/signin', function (req, res) {
-    var userNew = new User();
-    userNew.username = req.body.username;
-    userNew.password = req.body.password;
+router.route('/movies')
+  .get(authJwtController.isAuthenticated, async (req, res) => {
+    try {
+      const movies = await Movie.find();
+      res.status(200).json(movies);
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Error fetching movies.' });
+    }
+  })
+  .post(authJwtController.isAuthenticated, async (req, res) => {
+    try {
+      if (!req.body.title || !req.body.genre || !req.body.actors || req.body.actors.length < 3) {
+        return res.status(400).json({ success: false, message: 'Please include title, genre, and at least 3 actors.' });
+      }
+      const movie = new Movie(req.body);
+      await movie.save();
+      res.status(201).json({ success: true, movie: movie });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
 
-    User.findOne({ username: userNew.username }).select('name username password').exec(function(err, user) {
-        if (err) {
-            res.send(err);
+router.route('/movies/:title')
+  .get(authJwtController.isAuthenticated, async (req, res) => {
+    try {
+      if (req.query.reviews === 'true') {
+        const movie = await Movie.aggregate([
+          { $match: { title: req.params.title } },
+          {
+            $lookup: {
+              from: 'reviews',
+              localField: '_id',
+              foreignField: 'movieId',
+              as: 'reviews'
+            }
+          }
+        ]);
+        if (!movie || movie.length === 0) {
+          return res.status(404).json({ success: false, message: 'Movie not found.' });
         }
+        res.status(200).json(movie[0]);
+      } else {
+        const movie = await Movie.findOne({ title: req.params.title });
+        if (!movie) return res.status(404).json({ success: false, message: 'Movie not found.' });
+        res.status(200).json(movie);
+      }
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Error fetching movie.' });
+    }
+  })
+  .put(authJwtController.isAuthenticated, async (req, res) => {
+    try {
+      const movie = await Movie.findOneAndUpdate({ title: req.params.title }, req.body, { new: true });
+      if (!movie) return res.status(404).json({ success: false, message: 'Movie not found.' });
+      res.status(200).json({ success: true, movie: movie });
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Error updating movie.' });
+    }
+  })
+  .delete(authJwtController.isAuthenticated, async (req, res) => {
+    try {
+      const movie = await Movie.findOneAndDelete({ title: req.params.title });
+      if (!movie) return res.status(404).json({ success: false, message: 'Movie not found.' });
+      res.status(200).json({ success: true, message: 'Movie deleted.' });
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Error deleting movie.' });
+    }
+  });
 
-        user.comparePassword(userNew.password, function(isMatch) {
-            if (isMatch) {
-                var userToken = { id: user.id, username: user.username };
-                var token = jwt.sign(userToken, process.env.SECRET_KEY);
-                res.json ({success: true, token: 'JWT ' + token});
-            }
-            else {
-                res.status(401).send({success: false, msg: 'Authentication failed.'});
-            }
-        })
-    })
-});
+router.route('/reviews')
+  .get(authJwtController.isAuthenticated, async (req, res) => {
+    try {
+      const reviews = await Review.find();
+      res.status(200).json(reviews);
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Error fetching reviews.' });
+    }
+  })
+  .post(authJwtController.isAuthenticated, async (req, res) => {
+    try {
+      const movie = await Movie.findById(req.body.movieId);
+      if (!movie) return res.status(404).json({ success: false, message: 'Movie not found.' });
+      const review = new Review({
+        movieId: req.body.movieId,
+        username: req.body.username,
+        review: req.body.review,
+        rating: req.body.rating
+      });
+      await review.save();
+      res.status(201).json({ message: 'Review created!' });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
 
 app.use('/', router);
-app.listen(process.env.PORT || 8080);
-module.exports = app; // for testing only
 
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 
+module.exports = app;
