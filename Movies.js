@@ -20,7 +20,8 @@ var MovieSchema = new Schema({
       message: 'A movie must have at least three actors.'
     },
     required: true
-  }
+  },
+  imageUrl: String
 });
 
 module.exports = mongoose.model('Movie', MovieSchema);
