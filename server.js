@@ -140,6 +140,28 @@ router.route('/reviews')
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
     }
+  }); router.route('/search')
+  .post(authJwtController.isAuthenticated, async (req, res) => {
+    try {
+      const { title, actorName } = req.body;
+      const aggregate = [
+        {
+          $match: {
+            $or: [
+              { title: { $regex: title || '', $options: 'i' } },
+              { 'actors.actorName': { $regex: actorName || '', $options: 'i' } }
+            ]
+          }
+        },
+        { $lookup: { from: 'reviews', localField: '_id', foreignField: 'movieId', as: 'reviews' } },
+        { $addFields: { avgRating: { $avg: '$reviews.rating' } } },
+        { $sort: { avgRating: -1 } }
+      ];
+      const movies = await Movie.aggregate(aggregate);
+      res.status(200).json(movies);
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
   });
 
 app.use('/', router);
