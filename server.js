@@ -87,7 +87,7 @@ router.route('/movies/:id')
       }
       const aggregate = [
         matchStage,
-        { $lookup: { from: 'reviews', localField: '_id', foreignField: 'movieId', as: 'movieReviews' } },
+        { $lookup: { from: 'reviews', localField: '_id', foreignField: 'movieId', as: 'reviews' } },
         { $addFields: { avgRating: { $avg: '$movieReviews.rating' } } }
       ];
       const movie = await Movie.aggregate(aggregate);
