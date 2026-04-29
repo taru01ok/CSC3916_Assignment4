@@ -88,7 +88,7 @@ router.route('/movies/:id')
       const aggregate = [
         matchStage,
         { $lookup: { from: 'reviews', localField: '_id', foreignField: 'movieId', as: 'reviews' } },
-        { $addFields: { avgRating: { $avg: '$movieReviews.rating' } } }
+        { $addFields: { avgRating: { $avg: '$reviews.rating' } } }
       ];
       const movie = await Movie.aggregate(aggregate);
       if (!movie || movie.length === 0) return res.status(404).json({ success: false, message: 'Movie not found.' });
