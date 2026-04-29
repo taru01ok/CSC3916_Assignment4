@@ -2,11 +2,44 @@
   "info": {
     "_postman_id": "89a387de-2946-4ce5-9b7e-9053083047d8",
     "name": "CSC3916_Assignment4",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "52086578",
-    "_collection_link": "https://go.postman.co/collection/52086578-89a387de-2946-4ce5-9b7e-9053083047d8?source=collection_link"
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
+    {
+      "name": "Signup",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test('Success is true', function () {",
+              "    var data = pm.response.json();",
+              "    pm.expect(data.success).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test User\",\n  \"username\": \"testuser4\",\n  \"password\": \"testpass123\"\n}"
+        },
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/signup",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["signup"]
+        }
+      },
+      "response": []
+    },
     {
       "name": "Signin",
       "event": [
@@ -14,92 +47,310 @@
           "listen": "test",
           "script": {
             "exec": [
-              "var data = JSON.parse(responseBody);",
-              "pm.environment.set(\"token\", data.token);"
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Token received', function () {",
+              "    var data = pm.response.json();",
+              "    pm.expect(data.token).to.exist;",
+              "    pm.environment.set('token', data.token);",
+              "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "POST",
-        "header": [],
+        "header": [{"key": "Content-Type", "value": "application/json"}],
         "body": {
           "mode": "raw",
-          "raw": "{ \"username\": \"testuser\", \"password\": \"testpass\" }",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
+          "raw": "{\n  \"username\": \"testuser4\",\n  \"password\": \"testpass123\"\n}"
         },
         "url": {
-          "raw": "https://csc3916-assignment4-bp3w.onrender.com",
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/signin",
           "protocol": "https",
-          "host": [
-            "csc3916-assignment4-bp3w",
-            "onrender",
-            "com"
-          ]
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["signin"]
         }
       },
       "response": []
     },
     {
-      "name": "Signup",
+      "name": "Create Movie",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test('Movie created successfully', function () {",
+              "    var data = pm.response.json();",
+              "    pm.expect(data.success).to.be.true;",
+              "    pm.environment.set('movieId', data.movie._id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "{{token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Inception\",\n  \"genre\": \"Sci-Fi\",\n  \"year\": 2010,\n  \"actors\": [\n    {\"actorName\": \"Leonardo DiCaprio\", \"characterName\": \"Cobb\"},\n    {\"actorName\": \"Joseph Gordon-Levitt\", \"characterName\": \"Arthur\"},\n    {\"actorName\": \"Elliot Page\", \"characterName\": \"Ariadne\"}\n  ]\n}"
+        },
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/movies",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["movies"]
+        }
       },
       "response": []
     },
     {
-      "name": "movies",
+      "name": "Get All Movies",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Returns an array of movies', function () {",
+              "    var data = pm.response.json();",
+              "    pm.expect(data).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
       "request": {
         "method": "GET",
-        "header": []
+        "header": [{"key": "Authorization", "value": "{{token}}"}],
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/movies",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["movies"]
+        }
       },
       "response": []
     },
     {
-      "name": "Test 1",
+      "name": "Get Movie by ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Movie has reviews and avgRating', function () {",
+              "    var data = pm.response.json();",
+              "    pm.expect(data).to.have.property('reviews');",
+              "    pm.expect(data).to.have.property('avgRating');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
       "request": {
         "method": "GET",
-        "header": []
+        "header": [{"key": "Authorization", "value": "{{token}}"}],
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/movies/{{movieId}}",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["movies", "{{movieId}}"]
+        }
       },
       "response": []
     },
     {
-      "name": "Test 2",
+      "name": "Update Movie",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Movie updated successfully', function () {",
+              "    var data = pm.response.json();",
+              "    pm.expect(data.success).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "PUT",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "{{token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"genre\": \"Science Fiction\"\n}"
+        },
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/movies/{{movieId}}",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["movies", "{{movieId}}"]
+        }
       },
       "response": []
     },
     {
-      "name": "Test 3",
+      "name": "Create Review",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test('Review created', function () {",
+              "    var data = pm.response.json();",
+              "    pm.expect(data.message).to.equal('Review created!');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "{{token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": \"{{movieId}}\",\n  \"username\": \"testuser4\",\n  \"review\": \"Mind-blowing movie with incredible visuals!\",\n  \"rating\": 5\n}"
+        },
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/reviews",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["reviews"]
+        }
       },
       "response": []
     },
     {
-      "name": "Test 4",
+      "name": "Get All Reviews",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Returns array of reviews', function () {",
+              "    var data = pm.response.json();",
+              "    pm.expect(data).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
       "request": {
         "method": "GET",
-        "header": []
+        "header": [{"key": "Authorization", "value": "{{token}}"}],
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/reviews",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["reviews"]
+        }
       },
       "response": []
     },
     {
-      "name": "Movies",
+      "name": "Search Movies",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Returns search results', function () {",
+              "    var data = pm.response.json();",
+              "    pm.expect(data).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "{{token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Inception\"\n}"
+        },
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/search",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["search"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Movie",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Movie deleted successfully', function () {",
+              "    var data = pm.response.json();",
+              "    pm.expect(data.success).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [{"key": "Authorization", "value": "{{token}}"}],
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/movies/{{movieId}}",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["movies", "{{movieId}}"]
+        }
       },
       "response": []
     }
