@@ -94,6 +94,14 @@
         "header": []
       },
       "response": []
+    },
+    {
+      "name": "Movies",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
     }
   ]
 }
