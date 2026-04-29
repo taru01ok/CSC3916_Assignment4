@@ -54,7 +54,7 @@ router.route('/movies')
     try {
       const aggregate = [
         { $lookup: { from: 'reviews', localField: '_id', foreignField: 'movieId', as: 'movieReviews' } },
-        { $addFields: { avgRating: { $avg: '$reviews.rating' } } }
+        { $addFields: { avgRating: { $avg: '$reviews.rating' } } },
         { $sort: { avgRating: -1 } }
       ];
       const movies = await Movie.aggregate(aggregate);
