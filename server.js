@@ -52,13 +52,18 @@ router.post('/signin', async (req, res) => {
 router.route('/movies')
   .get(authJwtController.isAuthenticated, async (req, res) => {
     try {
-      const aggregate = [
-        { $lookup: { from: 'reviews', localField: '_id', foreignField: 'movieId', as: 'movieReviews' } },
-        { $addFields: { avgRating: { $avg: '$reviews.rating' } } },
-        { $sort: { avgRating: -1 } }
-      ];
-      const movies = await Movie.aggregate(aggregate);
-      res.status(200).json(movies);
+      if (req.query.reviews === 'true') {
+        const aggregate = [
+          { $lookup: { from: 'reviews', localField: '_id', foreignField: 'movieId', as: 'reviews' } },
+          { $addFields: { avgRating: { $avg: '$reviews.rating' } } },
+          { $sort: { avgRating: -1 } }
+        ];
+        const movies = await Movie.aggregate(aggregate);
+        res.status(200).json(movies);
+      } else {
+        const movies = await Movie.find();
+        res.status(200).json(movies);
+      }
     } catch (err) {
       res.status(500).json({ success: false, message: 'Error fetching movies.' });
     }
@@ -85,14 +90,26 @@ router.route('/movies/:id')
       } else {
         matchStage = { $match: { title: req.params.id } };
       }
-      const aggregate = [
-        matchStage,
-        { $lookup: { from: 'reviews', localField: '_id', foreignField: 'movieId', as: 'reviews' } },
-        { $addFields: { avgRating: { $avg: '$reviews.rating' } } }
-      ];
-      const movie = await Movie.aggregate(aggregate);
-      if (!movie || movie.length === 0) return res.status(404).json({ success: false, message: 'Movie not found.' });
-      res.status(200).json(movie[0]);
+
+      if (req.query.reviews === 'true') {
+        const aggregate = [
+          matchStage,
+          { $lookup: { from: 'reviews', localField: '_id', foreignField: 'movieId', as: 'reviews' } },
+          { $addFields: { avgRating: { $avg: '$reviews.rating' } } }
+        ];
+        const movie = await Movie.aggregate(aggregate);
+        if (!movie || movie.length === 0) return res.status(404).json({ success: false, message: 'Movie not found.' });
+        res.status(200).json(movie[0]);
+      } else {
+        let movie;
+        if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+          movie = await Movie.findById(req.params.id);
+        } else {
+          movie = await Movie.findOne({ title: req.params.id });
+        }
+        if (!movie) return res.status(404).json({ success: false, message: 'Movie not found.' });
+        res.status(200).json(movie);
+      }
     } catch (err) {
       res.status(500).json({ success: false, message: 'Error fetching movie.' });
     }
@@ -136,11 +153,13 @@ router.route('/reviews')
         rating: req.body.rating
       });
       await review.save();
-      res.status(201).json({ message: 'Review created!' });
+      res.status(201).json({ message: 'Review created!', review: review });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
     }
-  }); router.route('/search')
+  });
+
+router.route('/search')
   .post(authJwtController.isAuthenticated, async (req, res) => {
     try {
       const { title, actorName } = req.body;
