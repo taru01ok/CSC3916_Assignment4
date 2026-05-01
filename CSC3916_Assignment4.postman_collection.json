@@ -3,10 +3,28 @@
     "_postman_id": "89a387de-2946-4ce5-9b7e-9053083047d8",
     "name": "CSC3916_Assignment4",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "52086578",
-    "_collection_link": "https://go.postman.co/collection/52086578-89a387de-2946-4ce5-9b7e-9053083047d8?source=collection_link"
+    "_exporter_id": "52086578"
   },
   "item": [
+    {
+      "name": "Signup",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test User\",\n  \"username\": \"testuser\",\n  \"password\": \"testpass\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/signup",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["signup"]
+        }
+      },
+      "response": []
+    },
     {
       "name": "Signin",
       "event": [
@@ -17,9 +35,7 @@
               "var data = JSON.parse(responseBody);",
               "pm.environment.set(\"token\", data.token);"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
@@ -28,78 +44,128 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{ \"username\": \"testuser\", \"password\": \"testpass\" }",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
+          "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"testpass\"\n}",
+          "options": { "raw": { "language": "json" } }
         },
         "url": {
-          "raw": "https://csc3916-assignment4-bp3w.onrender.com",
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/signin",
           "protocol": "https",
-          "host": [
-            "csc3916-assignment4-bp3w",
-            "onrender",
-            "com"
-          ]
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["signin"]
         }
       },
       "response": []
     },
     {
-      "name": "Signup",
+      "name": "Save Movie",
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "{{token}}", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Inception\",\n  \"releaseDate\": 2010,\n  \"genre\": \"Science Fiction\",\n  \"actors\": [\n    { \"actorName\": \"Leonardo DiCaprio\", \"characterName\": \"Cobb\" },\n    { \"actorName\": \"Joseph Gordon-Levitt\", \"characterName\": \"Arthur\" },\n    { \"actorName\": \"Elliot Page\", \"characterName\": \"Ariadne\" }\n  ]\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/movies",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["movies"]
+        }
       },
       "response": []
     },
     {
-      "name": "movies",
+      "name": "Get All Movies",
       "request": {
         "method": "GET",
-        "header": []
+        "header": [
+          { "key": "Authorization", "value": "{{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/movies",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["movies"]
+        }
       },
       "response": []
     },
     {
-      "name": "Test 1",
+      "name": "Get All Movies With Reviews",
       "request": {
         "method": "GET",
-        "header": []
+        "header": [
+          { "key": "Authorization", "value": "{{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/movies?reviews=true",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["movies"],
+          "query": [{ "key": "reviews", "value": "true" }]
+        }
       },
       "response": []
     },
     {
-      "name": "Test 2",
+      "name": "Get One Movie With Reviews",
       "request": {
         "method": "GET",
-        "header": []
+        "header": [
+          { "key": "Authorization", "value": "{{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/movies/Inception?reviews=true",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["movies", "Inception"],
+          "query": [{ "key": "reviews", "value": "true" }]
+        }
       },
       "response": []
     },
     {
-      "name": "Test 3",
+      "name": "Post Review",
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "{{token}}", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": \"REPLACE_WITH_MOVIE_ID\",\n  \"username\": \"testuser\",\n  \"review\": \"Amazing movie!\",\n  \"rating\": 5\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/reviews",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["reviews"]
+        }
       },
       "response": []
     },
     {
-      "name": "Test 4",
+      "name": "Post Review - Invalid Movie",
       "request": {
-        "method": "GET",
-        "header": []
-      },
-      "response": []
-    },
-    {
-      "name": "Movies",
-      "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "{{token}}", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": \"000000000000000000000000\",\n  \"username\": \"testuser\",\n  \"review\": \"This movie does not exist\",\n  \"rating\": 3\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "https://csc3916-assignment4-bp3w.onrender.com/reviews",
+          "protocol": "https",
+          "host": ["csc3916-assignment4-bp3w", "onrender", "com"],
+          "path": ["reviews"]
+        }
       },
       "response": []
     }
