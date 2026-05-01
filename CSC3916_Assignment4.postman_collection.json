@@ -136,7 +136,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"movieId\": \"REPLACE_WITH_MOVIE_ID\",\n  \"username\": \"testuser\",\n  \"review\": \"Amazing movie!\",\n  \"rating\": 5\n}",
+          "raw": "{\n  \"movieId\": \"69f5096d8e39a0e8a91fa035\",\n  \"username\": \"testuser\",\n  \"review\": \"Amazing movie!\",\n  \"rating\": 5\n}",
           "options": { "raw": { "language": "json" } }
         },
         "url": {
